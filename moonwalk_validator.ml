@@ -189,6 +189,18 @@ module Z =
        | Zpos y' -> pos_sub y' x'
        | Zneg y' -> Zneg (Pos.add x' y'))
 
+  (** val opp : z -> z **)
+
+  let opp = function
+  | Z0 -> Z0
+  | Zpos x0 -> Zneg x0
+  | Zneg x0 -> Zpos x0
+
+  (** val sub : z -> z -> z **)
+
+  let sub m n =
+    add m (opp n)
+
   (** val compare : z -> z -> comparison **)
 
   let compare x y =
@@ -232,6 +244,12 @@ module Z =
     | Zneg p -> (match y with
                  | Zneg q -> Pos.eqb p q
                  | _ -> False)
+
+  (** val abs : z -> z **)
+
+  let abs = function
+  | Zneg p -> Zpos p
+  | x -> x
  end
 
 type foot =
@@ -350,9 +368,120 @@ let alternatingb poses =
 let all_stepsb poses =
   forallb moonwalk_stepb poses
 
+(** val withinb : z -> z -> z -> bool **)
+
+let withinb b x y =
+  Z.leb (Z.abs (Z.sub x y)) b
+
+(** val continuous_betweenb : z -> pose -> pose -> bool **)
+
+let continuous_betweenb b p q =
+  match foot_eqb q.lead (other p.lead) with
+  | True ->
+    (match withinb b p.com_delta q.com_delta with
+     | True ->
+       (match withinb b p.lead_rel q.lead_rel with
+        | True ->
+          (match withinb b p.trail_rel q.trail_rel with
+           | True ->
+             (match withinb b p.heel_lead q.heel_lead with
+              | True ->
+                (match withinb b p.heel_trail q.heel_trail with
+                 | True -> withinb b p.dt_ms q.dt_ms
+                 | False -> False)
+              | False -> False)
+           | False -> False)
+        | False -> False)
+     | False -> False)
+  | False -> False
+
+(** val continuous_sequenceb_from : z -> pose -> pose list -> bool **)
+
+let rec continuous_sequenceb_from b prev = function
+| Nil -> True
+| Cons (q, rest) ->
+  (match continuous_betweenb b prev q with
+   | True -> continuous_sequenceb_from b q rest
+   | False -> False)
+
+(** val continuous_sequenceb : z -> pose list -> bool **)
+
+let continuous_sequenceb b = function
+| Nil -> True
+| Cons (p, rest) -> continuous_sequenceb_from b p rest
+
+(** val left_pos : pose -> z **)
+
+let left_pos p =
+  match p.lead with
+  | Left -> abs_disp p.com_delta p.lead_rel
+  | Right -> abs_disp p.com_delta p.trail_rel
+
+(** val right_pos : pose -> z **)
+
+let right_pos p =
+  match p.lead with
+  | Left -> abs_disp p.com_delta p.trail_rel
+  | Right -> abs_disp p.com_delta p.lead_rel
+
+(** val footpos_betweenb : z -> pose -> pose -> bool **)
+
+let footpos_betweenb b p q =
+  match withinb b (left_pos p) (left_pos q) with
+  | True -> withinb b (right_pos p) (right_pos q)
+  | False -> False
+
+(** val footpos_sequenceb_from : z -> pose -> pose list -> bool **)
+
+let rec footpos_sequenceb_from b prev = function
+| Nil -> True
+| Cons (q, rest) ->
+  (match footpos_betweenb b prev q with
+   | True -> footpos_sequenceb_from b q rest
+   | False -> False)
+
+(** val footpos_sequenceb : z -> pose list -> bool **)
+
+let footpos_sequenceb b = function
+| Nil -> True
+| Cons (p, rest) -> footpos_sequenceb_from b p rest
+
+(** val continuity_bound : z **)
+
+let continuity_bound =
+  Zpos (XO (XI (XO XH)))
+
+(** val validate_sequence_bounded : z -> pose list -> bool **)
+
+let validate_sequence_bounded b poses =
+  match all_stepsb poses with
+  | True ->
+    (match alternatingb poses with
+     | True -> continuous_sequenceb b poses
+     | False -> False)
+  | False -> False
+
 (** val validate_sequence : pose list -> bool **)
 
 let validate_sequence poses =
+  validate_sequence_bounded continuity_bound poses
+
+(** val footpos_bound : z **)
+
+let footpos_bound =
+  Zpos (XO (XI (XO XH)))
+
+(** val validate_sequence_footpos_bounded : z -> pose list -> bool **)
+
+let validate_sequence_footpos_bounded b poses =
   match all_stepsb poses with
-  | True -> alternatingb poses
+  | True ->
+    (match alternatingb poses with
+     | True -> footpos_sequenceb b poses
+     | False -> False)
   | False -> False
+
+(** val validate_sequence_footpos : pose list -> bool **)
+
+let validate_sequence_footpos poses =
+  validate_sequence_footpos_bounded footpos_bound poses
