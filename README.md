@@ -12,17 +12,28 @@ PowerShell:
 
 This compiles `Moonwalk.v` and regenerates `moonwalk_validator.ml`.
 
+## Units and Calibration
+
+- Distances are in millimeters (mm).
+- Time is in milliseconds (ms).
+- Friction coefficient `mu` is scaled by 1000 (e.g., 0.30 -> 300).
+
+Calibration is explicit via `default_calibration` (thresholds and bounds for
+friction, step size, heel lift, timing, speeds, continuity, and illusion range).
+
 ## Validator
 
 The extracted validator exposes:
 
-- `validate_sequence` for the default continuity bound.
-- `validate_sequence_bounded` for a custom bound.
-- `validate_sequence_footpos` for per-foot continuity.
-- `validate_sequence_footpos_bounded` for per-foot continuity with a custom bound.
+- `validate_sequence` (default calibration + default continuity bound).
+- `validate_sequence_bounded` (custom calibration + custom bound).
+- `validate_sequence_bounded_default` (default calibration + custom bound).
+- `validate_sequence_footpos` (default calibration + default footpos bound).
+- `validate_sequence_footpos_bounded` (custom calibration + custom bound).
+- `validate_sequence_footpos_bounded_default` (default calibration + custom bound).
 
-Default continuity bound is 10 (see `continuity_bound`).
-Default per-foot bound is 10 (see `footpos_bound`).
+Default bounds come from `default_calibration`:
+`continuity_bound`, `continuity_dt_bound`, and `footpos_bound`.
 
 ## Demo (optional)
 

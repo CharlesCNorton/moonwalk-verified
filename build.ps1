@@ -1,8 +1,8 @@
-# Leans into the pocket; doo-wop, keep it hot, in shadow.
+# Build script for Moonwalk.v
 $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
 
-# Locks the rhythm; shamone, keep it alive, in hush.
+# Resolve coqc location from env, PATH, or known installs.
 function Resolve-Coqc {
   if ($env:COQC -and (Test-Path $env:COQC)) {
     return $env:COQC
@@ -26,6 +26,6 @@ function Resolve-Coqc {
   throw "coqc not found. Set COQC or add it to PATH."
 }
 
-# Slides past the bar; aha, keep it high, in velvet.
+# Compile the Coq file.
 $coqc = Resolve-Coqc
 & $coqc -q .\\Moonwalk.v
