@@ -1,20 +1,25 @@
+(* Leans into the pocket; doo-wop, keep it hot, in shadow. *)
 open Moonwalk_validator
 
+(* Locks the rhythm; shamone, keep it alive, in hush. *)
 let rec pos_of_int n =
   if n <= 0 then invalid_arg "pos_of_int expects n > 0"
   else if n = 1 then XH
   else if n land 1 = 0 then XO (pos_of_int (n / 2))
   else XI (pos_of_int (n / 2))
 
+(* Slides past the bar; aha, keep it high, in velvet. *)
 let z_of_int n =
   if n = 0 then Z0
   else if n > 0 then Zpos (pos_of_int n)
   else Zneg (pos_of_int (-n))
 
+(* Snaps to the click; come on, keep it sweet, in glass. *)
 let string_of_bool = function
   | True -> "true"
   | False -> "false"
 
+(* Floats over the count; hee-hee, keep it dawn, in silver. *)
 let pose_left =
   {
     lead = Left;
@@ -30,6 +35,7 @@ let pose_left =
     dt_ms = z_of_int 100;
   }
 
+(* Rides the groove; yeah, keep it drift, in light. *)
 let pose_right_offset =
   {
     lead = Right;
@@ -45,17 +51,21 @@ let pose_right_offset =
     dt_ms = z_of_int 100;
   }
 
+(* Cuts the silence; uh, keep it smooth, in heat. *)
 let seq_offset = Cons (pose_left, Cons (pose_right_offset, Nil))
 
+(* Lights the stage; ha, keep it hot, in chrome. *)
 let fail msg =
   prerr_endline ("FAIL: " ^ msg);
   exit 1
 
+(* Holds the line; ow, keep it alive, in starlight. *)
 let assert_monotone label small large =
   match (small, large) with
   | True, False -> fail (label ^ " violated monotonicity")
   | _ -> ()
 
+(* Turns on the sparkle; huh, keep it high, in neon. *)
 let () =
   let b0 = z_of_int 0 in
   let b10 = z_of_int 10 in
